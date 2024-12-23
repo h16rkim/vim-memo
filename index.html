@@ -54,6 +54,7 @@
 <div class="controls">
     <input type="text" class="title-input" id="title-input" placeholder="Enter document title...">
     <select id="mode-select">
+        <option value="text">Plain</option>
         <option value="text/x-sql">SQL</option>
         <option value="application/json">JSON</option>
         <option value="text/typescript">TypeScript</option>
@@ -76,7 +77,7 @@
     const STORAGE_KEY = 'h16rkim_vim_memo';
 
     const editor = CodeMirror(document.getElementById('editor'), {
-        mode: "application/json",
+        mode: "text",
         lineNumbers: true,
         keyMap: 'vim',
         viewportMargin: Infinity
