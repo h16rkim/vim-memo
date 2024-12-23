@@ -66,11 +66,10 @@
         <option value="htmlmixed">HTML</option>
         <option value="markdown">Markdown</option>
     </select>
-    <button class="button" id="format-button">Format</button>
-    <button class="button" id="download-button">Download</button>
     <button class="button" id="save-button">Save</button>
     <button class="button" id="new-button">New</button>
-
+    <button class="button" id="format-button">Format</button>
+    <button class="button" id="download-button">Download</button>
 </div>
 <div class="editor" id="editor"></div>
 
@@ -102,12 +101,15 @@
 
     function commentSelection() {
         var range = getSelectedRange();
-        const isComment = editor.getLine(range.from.line).trim().startsWith('//') || editor.getLine(range.from.line).trim().startsWith('<!--') || editor.getLine(range.from.line).trim().startsWith('/*') || editor.getLine(range.from.line).trim().startsWith('--');
+        const isComment = editor.getLine(range.from.line).trim().startsWith('//') ||
+          editor.getLine(range.from.line).trim().startsWith('<!--') ||
+          editor.getLine(range.from.line).trim().startsWith('/*') ||
+          editor.getLine(range.from.line).trim().startsWith('--');
         editor.commentRange(!isComment, range.from, range.to);
     }
 
     function download() {
-        const documentTitle = document.title ?? `notes-${getCurrentTimestamp()}`;
+        const documentTitle = document.title || `notes-${getCurrentTimestamp()}`;
         const markdownText = editor.getValue();
         const fileName = prompt("Enter the file name", `${documentTitle}.txt`);
 
@@ -140,15 +142,41 @@
         window.open(currentURL);
     }
 
+    // 수정된 save 함수: title과 mode도 함께 저장
     function save() {
         const content = editor.getValue();
-        localStorage.setItem(STORAGE_KEY, content);
+        const title = document.getElementById('title-input').value;
+        const mode = document.getElementById('mode-select').value;
+        const data = { title, mode, content };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
 
+    // 수정된 load 함수: title과 mode도 함께 불러오기
     function load() {
-        const content = localStorage.getItem(STORAGE_KEY);
-        if (content) {
-            editor.setValue(content);
+        const dataString = localStorage.getItem(STORAGE_KEY);
+        if (dataString) {
+            try {
+                const data = JSON.parse(dataString);
+                if (data.title) {
+                    document.getElementById('title-input').value = data.title;
+                    document.title = data.title;
+                }
+                if (data.mode) {
+                    const modeSelect = document.getElementById('mode-select');
+                    // 확인하여 존재하는 mode인지 체크
+                    if ([...modeSelect.options].some(option => option.value === data.mode)) {
+                        modeSelect.value = data.mode;
+                        editor.setOption('mode', data.mode);
+                    } else {
+                        editor.setOption('mode', 'text');
+                    }
+                }
+                if (data.content) {
+                    editor.setValue(data.content);
+                }
+            } catch (e) {
+                console.error('Failed to parse saved data:', e);
+            }
         }
     }
 
@@ -156,7 +184,7 @@
     document.getElementById('format-button').addEventListener('click', autoFormatSelection);
     // Download Markdown content with user-defined filename
     document.getElementById('download-button').addEventListener('click', download);
-    // Save Memo to Cookie
+    // Save Memo to localStorage
     document.getElementById('save-button').addEventListener('click', save);
     // New Memo Tab
     document.getElementById('new-button').addEventListener('click', newMemo);
@@ -167,13 +195,13 @@
     });
     // Update document title based on input field
     document.getElementById('title-input').addEventListener('input', function(event) {
-        document.title = event.target.value || 'Markdown Notes (Vim)';
+        document.title = event.target.value || 'Vim Memo';
     });
 
     // Add event listener for CMD+/ to toggle comments
     editor.addKeyMap({
         'Cmd-/': function() {
-            commentSelection(true);
+            commentSelection();
         },
         'Cmd-A': function() {
             editor.setSelection({ line: 0, ch: 0 }, { line: editor.lastLine(), ch: editor.getLine(editor.lastLine()).length });
