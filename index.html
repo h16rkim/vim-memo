@@ -65,6 +65,7 @@
     </select>
     <button class="button" id="format-button">Format</button>
     <button class="button" id="download-button">Download</button>
+    <button class="button" id="save-button">Save</button>
     <button class="button" id="new-button">New</button>
 
 </div>
@@ -72,6 +73,8 @@
 
 <script>
     // Initialize CodeMirror with Vim key bindings
+    const COOKIE_NAME = 'h16rkim_vim_memo';
+
     const editor = CodeMirror(document.getElementById('editor'), {
         mode: "application/json",
         lineNumbers: true,
@@ -133,10 +136,29 @@
         window.open(currentURL);
     }
 
+    function saveToCookie() {
+        const content = editor.getValue();
+        document.cookie = `${COOKIE_NAME}=${encodeURIComponent(content)}; path=/; max-age=31536000;`;
+    }
+
+    function loadFromCookie() {
+        const cookies = document.cookie.split('; ');
+        for (const cookie of cookies) {
+            const [name, value] = cookie.split('=');
+            if (name === COOKIE_NAME) {
+                const decodedValue = decodeURIComponent(value);
+                editor.setValue(decodedValue);
+                break;
+            }
+        }
+    }
+
     // Add event listener to the format button
     document.getElementById('format-button').addEventListener('click', autoFormatSelection);
     // Download Markdown content with user-defined filename
     document.getElementById('download-button').addEventListener('click', download);
+    // Save Memo to Cookie
+    document.getElementById('save-button').addEventListener('click', saveToCookie);
     // New Memo Tab
     document.getElementById('new-button').addEventListener('click', newMemo);
     // Update mode based on the select box
@@ -163,6 +185,7 @@
     window.addEventListener('load', () => {
         editor.focus();
         CodeMirror.Vim.handleKey(editor, 'i');
+        loadFromCookie();
     });
 
 </script>
