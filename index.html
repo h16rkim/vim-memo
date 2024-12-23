@@ -48,7 +48,9 @@
     <script src="codemirror/5.65.9/extensions/sql.js"></script>
 </head>
 <body>
+
 <div class="controls">
+    <input type="text" class="title-input" id="title-input" placeholder="Enter document title...">
     <select id="mode-select">
         <option value="text/x-sql">SQL</option>
         <option value="application/json">JSON</option>
@@ -61,6 +63,7 @@
     </select>
     <button class="button" id="format-button">Format</button>
     <button class="button" id="download-button">Download</button>
+    <button class="button" id="new-button">New</button>
 
 </div>
 <div class="editor" id="editor"></div>
@@ -123,14 +126,25 @@
         return `${year}${month}${day}${hours}${minutes}${seconds}`;
     }
 
+    function newMemo() {
+        const currentURL = window.location.href;
+        window.open(currentURL);
+    }
+
     // Add event listener to the format button
     document.getElementById('format-button').addEventListener('click', autoFormatSelection);
     // Download Markdown content with user-defined filename
     document.getElementById('download-button').addEventListener('click', download);
+    // New Memo Tab
+    document.getElementById('new-button').addEventListener('click', newMemo);
     // Update mode based on the select box
     document.getElementById('mode-select').addEventListener('change', function(event) {
         const mode = event.target.value;
         editor.setOption('mode', mode);
+    });
+    // Update document title based on input field
+    document.getElementById('title-input').addEventListener('input', function(event) {
+        document.title = event.target.value || 'Markdown Notes (Vim)';
     });
 
     // Add event listener for CMD+/ to toggle comments
@@ -148,6 +162,7 @@
         editor.focus();
         CodeMirror.Vim.handleKey(editor, 'i');
     });
+
 </script>
 </body>
 </html>
