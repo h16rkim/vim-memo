@@ -34,6 +34,16 @@
             justify-content: flex-end;
             width: 80%;
         }
+        .controls .load-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: flex-start; /* 헤더의 좌측에 정렬 */
+        }
+        .load-controls {
+            position: absolute;
+            left: 10%;
+        }
     </style>
     <!-- CodeMirror -->
     <link rel="stylesheet" href="codemirror/5.65.9/codemirror.min.css">
@@ -60,6 +70,13 @@
 <body>
 
 <div class="controls">
+    <div class="load-controls">
+        <select id="saved-keys-select">
+            <option value="">Select a saved memo...</option>
+        </select>
+        <button class="button" id="load-button">Load</button>
+        <button class="button" id="delete-button">Delete</button>
+    </div>
     <input type="text" class="title-input" id="title-input" placeholder="Enter document title...">
     <select id="mode-select">
         <option value="text">Plain</option>
@@ -158,18 +175,19 @@
         window.open(currentURL);
     }
 
-    // 수정된 save 함수: title과 mode도 함께 저장
     function save() {
         const content = editor.getValue();
         const title = document.getElementById('title-input').value;
         const mode = document.getElementById('mode-select').value;
+        const timestamp = getCurrentTimestamp();
         const data = { title, mode, content };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        const key = `${STORAGE_KEY}_${encodeURIComponent(title || timestamp)}`;
+        localStorage.setItem(key, JSON.stringify(data));
+        populateSavedKeys();
     }
 
-    // 수정된 load 함수: title과 mode도 함께 불러오기
-    function load() {
-        const dataString = localStorage.getItem(STORAGE_KEY);
+    function load(key) {
+        const dataString = localStorage.getItem(key);
         if (dataString) {
             try {
                 const data = JSON.parse(dataString);
@@ -179,7 +197,6 @@
                 }
                 if (data.mode) {
                     const modeSelect = document.getElementById('mode-select');
-                    // 확인하여 존재하는 mode인지 체크
                     if ([...modeSelect.options].some(option => option.value === data.mode)) {
                         modeSelect.value = data.mode;
                         editor.setOption('mode', data.mode);
@@ -196,25 +213,53 @@
         }
     }
 
-    // Add event listener to the format button
+    function deleteKey(key) {
+        if (key) {
+            localStorage.removeItem(key);
+            populateSavedKeys();
+        }
+    }
+
+    function populateSavedKeys() {
+        const selectBox = document.getElementById('saved-keys-select');
+        selectBox.innerHTML = '<option value="">Select a saved memo...</option>';
+        const keys = Object.keys(localStorage).filter(key => key.startsWith(STORAGE_KEY));
+        keys.forEach(key => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = decodeURIComponent(key.replace(`${STORAGE_KEY}_`, ''));
+            selectBox.appendChild(option);
+        });
+    }
+
     document.getElementById('format-button').addEventListener('click', autoFormatSelection);
-    // Download Markdown content with user-defined filename
     document.getElementById('download-button').addEventListener('click', download);
-    // Save Memo to localStorage
     document.getElementById('save-button').addEventListener('click', save);
-    // New Memo Tab
     document.getElementById('new-button').addEventListener('click', newMemo);
-    // Update mode based on the select box
     document.getElementById('mode-select').addEventListener('change', function(event) {
         const mode = event.target.value;
         editor.setOption('mode', mode);
     });
-    // Update document title based on input field
     document.getElementById('title-input').addEventListener('input', function(event) {
         document.title = event.target.value || 'Vim Memo';
     });
+    document.getElementById('load-button').addEventListener('click', function() {
+        const selectedKey = document.getElementById('saved-keys-select').value;
+        if (selectedKey) {
+            load(selectedKey);
+        } else {
+            alert('Please select a saved memo to load.');
+        }
+    });
+    document.getElementById('delete-button').addEventListener('click', function() {
+        const selectedKey = document.getElementById('saved-keys-select').value;
+        if (selectedKey) {
+            deleteKey(selectedKey);
+        } else {
+            alert('Please select a saved memo to delete.');
+        }
+    });
 
-    // Add event listener for CMD+/ to toggle comments
     editor.addKeyMap({
         'Cmd-/': function() {
             commentSelection();
@@ -230,16 +275,14 @@
         }
     });
 
-    // Define the ':w' Vim command to trigger the save function
     CodeMirror.Vim.defineEx('w', 'w', function(cm, params) {
         save();
     });
 
-    // Automatically switch to insert mode on load and focus the editor
     window.addEventListener('load', () => {
         editor.focus();
         CodeMirror.Vim.handleKey(editor, 'i');
-        load();
+        populateSavedKeys();
     });
 
 </script>
