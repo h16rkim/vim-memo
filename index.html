@@ -37,6 +37,7 @@
     </style>
     <!-- CodeMirror -->
     <link rel="stylesheet" href="codemirror/5.65.9/codemirror.min.css">
+    <link rel="stylesheet" href="codemirror/5.65.9/extensions/show-hint.css">
     <script src="codemirror/5.65.9/codemirror.min.js"></script>
     <script src="codemirror/5.65.9/keymap/vim.min.js"></script>
     <script src="codemirror/5.65.9/extensions/match-brackets.js"></script>
@@ -44,11 +45,17 @@
     <script src="codemirror/5.65.9/extensions/css.js"></script>
     <script src="codemirror/5.65.9/extensions/xml.js"></script>
     <script src="codemirror/5.65.9/extensions/javascript.js"></script>
+    <script src="codemirror/5.65.9/extensions/python.js"></script>
     <script src="codemirror/5.65.9/extensions/htmlmixed.js"></script>
     <script src="codemirror/5.65.9/extensions/sql.js"></script>
     <script src="codemirror/5.65.9/extensions/clike.min.js"></script>
     <script src="codemirror/5.65.9/extensions/markdown.min.js"></script>
-
+    <script src="codemirror/5.65.9/extensions/show-hint.min.js"></script>
+    <script src="codemirror/5.65.9/extensions/javascript-hint.js"></script>
+    <script src="codemirror/5.65.9/extensions/sql-hint.js"></script>
+    <script src="codemirror/5.65.9/extensions/java-hint.js"></script>
+    <script src="codemirror/5.65.9/extensions/python-hint.js"></script>
+    <script src="codemirror/5.65.9/extensions/closebrackets.js"></script>
 </head>
 <body>
 
@@ -64,6 +71,8 @@
         <option value="text/x-kotlin">Kotlin</option>
         <option value="text/x-java">Java</option>
         <option value="htmlmixed">HTML</option>
+        <option value="css">CSS</option>
+        <option value="python">Python</option>
         <option value="markdown">Markdown</option>
     </select>
     <button class="button" id="save-button">Save</button>
@@ -72,6 +81,7 @@
     <button class="button" id="download-button">Download</button>
 </div>
 <div class="editor" id="editor"></div>
+<div id="opt"></div>
 
 <script>
     // Initialize CodeMirror with Vim key bindings
@@ -82,6 +92,11 @@
         lineNumbers: true,
         keyMap: 'vim',
         lineWrapping: true,
+        tabSize: 2,
+        indentUnit: 2,
+        indentWithTabs: false,
+        matchBrackets: true,
+        autoCloseBrackets: true,
         viewportMargin: Infinity
     });
 
@@ -206,8 +221,15 @@
         },
         'Cmd-A': function() {
             editor.setSelection({ line: 0, ch: 0 }, { line: editor.lastLine(), ch: editor.getLine(editor.lastLine()).length });
+        },
+        "Ctrl-Space": "autocomplete",
+    });
+    editor.on("keyup", function (cm, event) {
+        if (!cm.state.completionActive && event.keyCode == 190) {
+            CodeMirror.commands.autocomplete(cm, null, {completeSingle: false});
         }
     });
+
     // Define the ':w' Vim command to trigger the save function
     CodeMirror.Vim.defineEx('w', 'w', function(cm, params) {
         save();
