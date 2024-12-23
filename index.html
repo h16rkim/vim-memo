@@ -207,6 +207,10 @@
             editor.setSelection({ line: 0, ch: 0 }, { line: editor.lastLine(), ch: editor.getLine(editor.lastLine()).length });
         }
     });
+    // Define the ':w' Vim command to trigger the save function
+    CodeMirror.Vim.defineEx('w', 'w', function(cm, params) {
+        save();
+    });
 
     // Automatically switch to insert mode on load and focus the editor
     window.addEventListener('load', () => {
