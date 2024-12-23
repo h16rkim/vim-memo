@@ -107,8 +107,9 @@
     }
 
     function download() {
+        const documentTitle = document.title ?? `notes-${getCurrentTimestamp()}`;
         const markdownText = editor.getValue();
-        const fileName = prompt("Enter the file name", `notes-${getCurrentTimestamp()}.txt`);
+        const fileName = prompt("Enter the file name", `${documentTitle}.txt`);
 
         if (fileName) {
             const blob = new Blob([markdownText], { type: 'text/plain' });
