@@ -127,7 +127,6 @@
     document.getElementById('format-button').addEventListener('click', autoFormatSelection);
     // Download Markdown content with user-defined filename
     document.getElementById('download-button').addEventListener('click', download);
-
     // Update mode based on the select box
     document.getElementById('mode-select').addEventListener('change', function(event) {
         const mode = event.target.value;
@@ -142,6 +141,12 @@
         'Cmd-A': function() {
             editor.setSelection({ line: 0, ch: 0 }, { line: editor.lastLine(), ch: editor.getLine(editor.lastLine()).length });
         }
+    });
+
+    // Automatically switch to insert mode on load and focus the editor
+    window.addEventListener('load', () => {
+        editor.focus();
+        CodeMirror.Vim.handleKey(editor, 'i');
     });
 </script>
 </body>
