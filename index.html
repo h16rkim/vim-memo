@@ -146,9 +146,10 @@
     }
 
     function download() {
-        const documentTitle = document.title || `notes-${getCurrentTimestamp()}`;
+        const rawDocumentTitle = document.title || `notes-${getCurrentTimestamp()}`;
+        const documentTitle = rawDocumentTitle.includes(".") ? rawDocumentTitle : `${rawDocumentTitle}.txt`;
         const markdownText = editor.getValue();
-        const fileName = prompt("Enter the file name", `${documentTitle}.txt`);
+        const fileName = prompt("Enter the file name", documentTitle);
 
         if (fileName) {
             const blob = new Blob([markdownText], { type: 'text/plain' });
