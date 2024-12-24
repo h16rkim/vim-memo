@@ -34,15 +34,15 @@
             justify-content: flex-end;
             width: 80%;
         }
-        .controls .load-controls {
+        .controls {
             display: flex;
             gap: 10px;
             align-items: center;
-            justify-content: flex-start; /* 헤더의 좌측에 정렬 */
+            justify-content: flex-end; /* 헤더의 좌측에 정렬 */
         }
-        .load-controls {
-            position: absolute;
-            left: 10%;
+
+        #title-input {
+            display: none;
         }
     </style>
     <!-- CodeMirror -->
@@ -72,17 +72,10 @@
 <body>
 
 <div class="controls">
-    <div class="load-controls">
-        <select id="saved-keys-select">
-            <option value="">Select a saved memo...</option>
-        </select>
-        <button class="button" id="load-button">Load</button>
-        <button class="button" id="delete-button">Delete</button>
-<!--        <button class="button" id="new-button">New</button>-->
-        <button class="button" id="download-button">Download</button>
-        <button class="button" id="save-button">Save</button>
-    </div>
     <input type="text" class="title-input" id="title-input" placeholder="Enter document title...">
+    <select id="saved-keys-select">
+        <option value="">Select a saved memo...</option>
+    </select>
     <select id="mode-select">
         <option value="text">Plain</option>
         <option value="text/x-sql">SQL</option>
@@ -99,7 +92,12 @@
         <option value="python">Python</option>
         <option value="markdown">Markdown</option>
     </select>
+    <button class="button" id="load-button">Load</button>
+    <button class="button" id="delete-button">Delete</button>
+    <button class="button" id="new-button">New</button>
+    <button class="button" id="download-button">Download</button>
     <button class="button" id="format-button">Format</button>
+    <button class="button" id="save-button">Save</button>
 </div>
 <div class="editor" id="editor"></div>
 <div id="opt"></div>
@@ -173,13 +171,17 @@
     }
 
     function newMemo() {
-        const currentURL = window.location.href;
-        window.open(currentURL);
+        window.location.reload();
     }
 
     function save() {
         const content = editor.getValue();
-        const title = document.getElementById('title-input').value;
+        let title = document.getElementById('title-input').value;
+
+        if(!title) {
+          title = prompt("Enter the title of the memo", document.title);
+        }
+
         const mode = document.getElementById('mode-select').value;
         const timestamp = getCurrentTimestamp();
         const data = { title, mode, content };
