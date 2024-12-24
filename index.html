@@ -222,7 +222,7 @@
             try {
                 const data = JSON.parse(dataString);
                 if (data.title) {
-                    updateTitle(title);
+                    updateTitle(data.title);
                 }
                 if (data.mode) {
                     const modeSelect = document.getElementById('mode-select');
