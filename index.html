@@ -94,6 +94,7 @@
     </select>
     <button class="button" id="load-button">Load</button>
     <button class="button" id="save-button">Save</button>
+    <button class="button" id="rename-button">Rename</button>
     <button class="button" id="new-button">New</button>
     <button class="button" id="delete-button">Delete</button>
     <button class="button" id="download-button">Download</button>
@@ -182,6 +183,23 @@
           title = prompt("Enter the title of the memo", document.title);
         }
 
+        document.getElementById('title-input').value = title;
+        document.title = title;
+        const mode = document.getElementById('mode-select').value;
+        const timestamp = getCurrentTimestamp();
+        const data = { title, mode, content };
+        const key = `${STORAGE_KEY}_${encodeURIComponent(title || timestamp)}`;
+        localStorage.setItem(key, JSON.stringify(data));
+        populateSavedKeys();
+    }
+
+    function rename() {
+        const content = editor.getValue();
+        let title = document.getElementById('title-input').value;
+        title = prompt("Enter the title of the memo", document.title);
+        document.getElementById('title-input').value = title;
+        document.title = title;
+
         const mode = document.getElementById('mode-select').value;
         const timestamp = getCurrentTimestamp();
         const data = { title, mode, content };
@@ -239,6 +257,7 @@
     document.getElementById('format-button').addEventListener('click', autoFormatSelection);
     document.getElementById('download-button').addEventListener('click', download);
     document.getElementById('save-button').addEventListener('click', save);
+    document.getElementById('rename-button').addEventListener('click', rename);
     document.getElementById('new-button').addEventListener('click', newMemo);
     document.getElementById('mode-select').addEventListener('change', function(event) {
         const mode = event.target.value;
