@@ -171,8 +171,13 @@
         return `${year}${month}${day}`;
     }
 
-    function newMemo() {
+    function refresh() {
         window.location.reload();
+    }
+
+    function updateTitle(title) {
+        document.getElementById('title-input').value = title;
+        document.title = title;
     }
 
     function save() {
@@ -183,27 +188,30 @@
           title = prompt("Enter the title of the memo", document.title);
         }
 
-        document.getElementById('title-input').value = title;
-        document.title = title;
+        updateTitle(title);
         const mode = document.getElementById('mode-select').value;
         const timestamp = getCurrentTimestamp();
         const data = { title, mode, content };
-        const key = `${STORAGE_KEY}_${encodeURIComponent(title || timestamp)}`;
+        const key = toStorageKey(title || timestamp);
         localStorage.setItem(key, JSON.stringify(data));
         populateSavedKeys();
+    }
+
+    function toStorageKey(title) {
+        return `${STORAGE_KEY}_${encodeURIComponent(title)}`;
     }
 
     function rename() {
         const content = editor.getValue();
         let title = document.getElementById('title-input').value;
+        deleteKey(toStorageKey(document.title));
         title = prompt("Enter the title of the memo", document.title);
-        document.getElementById('title-input').value = title;
-        document.title = title;
+        updateTitle(title);
 
         const mode = document.getElementById('mode-select').value;
         const timestamp = getCurrentTimestamp();
         const data = { title, mode, content };
-        const key = `${STORAGE_KEY}_${encodeURIComponent(title || timestamp)}`;
+        const key = toStorageKey(title || timestamp);
         localStorage.setItem(key, JSON.stringify(data));
         populateSavedKeys();
     }
@@ -214,8 +222,7 @@
             try {
                 const data = JSON.parse(dataString);
                 if (data.title) {
-                    document.getElementById('title-input').value = data.title;
-                    document.title = data.title;
+                    updateTitle(title);
                 }
                 if (data.mode) {
                     const modeSelect = document.getElementById('mode-select');
@@ -240,6 +247,8 @@
             localStorage.removeItem(key);
             populateSavedKeys();
         }
+
+        refresh();
     }
 
     function populateSavedKeys() {
@@ -258,13 +267,10 @@
     document.getElementById('download-button').addEventListener('click', download);
     document.getElementById('save-button').addEventListener('click', save);
     document.getElementById('rename-button').addEventListener('click', rename);
-    document.getElementById('new-button').addEventListener('click', newMemo);
+    document.getElementById('new-button').addEventListener('click', refresh);
     document.getElementById('mode-select').addEventListener('change', function(event) {
         const mode = event.target.value;
         editor.setOption('mode', mode);
-    });
-    document.getElementById('title-input').addEventListener('input', function(event) {
-        document.title = event.target.value || 'Vim Memo';
     });
     document.getElementById('load-button').addEventListener('click', function() {
         const selectedKey = document.getElementById('saved-keys-select').value;
