@@ -195,6 +195,7 @@
         const key = toStorageKey(title || timestamp);
         localStorage.setItem(key, JSON.stringify(data));
         populateSavedKeys();
+        selectDocument(key);
     }
 
     function toStorageKey(title) {
@@ -203,17 +204,19 @@
 
     function rename() {
         const content = editor.getValue();
-        let title = document.getElementById('title-input').value;
-        deleteKey(toStorageKey(document.title));
-        title = prompt("Enter the title of the memo", document.title);
+        deleteKey(toStorageKey(document.title), false);
+        const title = prompt("Enter the title of the memo", document.title);
         updateTitle(title);
 
         const mode = document.getElementById('mode-select').value;
         const timestamp = getCurrentTimestamp();
         const data = { title, mode, content };
-        const key = toStorageKey(title || timestamp);
+        const documentTitle = title || timestamp;
+        const key = toStorageKey(documentTitle);
+
         localStorage.setItem(key, JSON.stringify(data));
         populateSavedKeys();
+        load(key);
     }
 
     function load(key) {
@@ -236,19 +239,27 @@
                 if (data.content) {
                     editor.setValue(data.content);
                 }
+
+                selectDocument(key);
             } catch (e) {
                 console.error('Failed to parse saved data:', e);
             }
         }
     }
 
-    function deleteKey(key) {
+    function selectDocument(key) {
+        document.getElementById('saved-keys-select').value = key;
+    }
+
+    function deleteKey(key, shouldRefresh = true) {
         if (key) {
             localStorage.removeItem(key);
             populateSavedKeys();
         }
 
-        refresh();
+        if(shouldRefresh) {
+            refresh();
+        }
     }
 
     function populateSavedKeys() {
@@ -261,6 +272,18 @@
             option.textContent = decodeURIComponent(key.replace(`${STORAGE_KEY}_`, ''));
             selectBox.appendChild(option);
         });
+    }
+
+    // 쿼리스트링에서 "document" 값을 읽어들이는 함수
+    function getQueryStringValue(key) {
+        // 현재 URL에서 쿼리스트링 부분만 추출
+        const queryString = window.location.search;
+
+        // URLSearchParams 객체를 사용해 쿼리스트링 분석
+        const params = new URLSearchParams(queryString);
+
+        // 키에 해당하는 값 반환 (없으면 null 반환)
+        return params.get(key);
     }
 
     document.getElementById('format-button').addEventListener('click', autoFormatSelection);
@@ -312,6 +335,12 @@
         editor.focus();
         CodeMirror.Vim.handleKey(editor, 'i');
         populateSavedKeys();
+
+        const document = getQueryStringValue('document');
+        if(document) {
+            load(toStorageKey(document));
+        }
+
     });
 
 </script>
