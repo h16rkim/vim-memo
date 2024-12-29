@@ -172,6 +172,7 @@
     }
 
     function refresh() {
+        removeQueryString();
         window.location.reload();
     }
 
@@ -196,10 +197,15 @@
         localStorage.setItem(key, JSON.stringify(data));
         populateSavedKeys();
         selectDocument(key);
+        setDocumentQueryString(title);
     }
 
     function toStorageKey(title) {
         return `${STORAGE_KEY}_${encodeURIComponent(title)}`;
+    }
+
+    function fromStorageKey(key) {
+        return decodeURIComponent(key.replace(`${STORAGE_KEY}_`, ''));
     }
 
     function rename() {
@@ -216,6 +222,7 @@
 
         localStorage.setItem(key, JSON.stringify(data));
         populateSavedKeys();
+        setDocumentQueryString(documentTitle);
         load(key);
     }
 
@@ -247,6 +254,31 @@
         }
     }
 
+    function setDocumentQueryString(title) {
+        const url = new URL(window.location);
+
+        if(!title) {
+          removeQueryString();
+
+          return;
+        }
+
+        url.searchParams.set('document', title);
+        window.history.pushState({}, '', url);
+    }
+
+    function removeQueryString() {
+      const url = new URL(window.location);
+      const urlString = url.toString();
+      const index = urlString.indexOf('?');
+      if (index < 0) {
+        return;
+      }
+
+      const urlWithoutQueryString =  urlString.substring(0, index);
+      window.history.pushState({}, '', urlWithoutQueryString);
+    }
+
     function selectDocument(key) {
         document.getElementById('saved-keys-select').value = key;
     }
@@ -254,6 +286,7 @@
     function deleteKey(key, shouldRefresh = true) {
         if (key) {
             localStorage.removeItem(key);
+            setDocumentQueryString('');
             populateSavedKeys();
         }
 
@@ -298,6 +331,7 @@
     document.getElementById('load-button').addEventListener('click', function() {
         const selectedKey = document.getElementById('saved-keys-select').value;
         if (selectedKey) {
+            setDocumentQueryString(fromStorageKey(selectedKey));
             load(selectedKey);
         } else {
             alert('Please select a saved memo to load.');
