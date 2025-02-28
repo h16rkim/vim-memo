@@ -174,10 +174,8 @@
     }
 
     function updateTitle(title) {
-        const documentTitle = `${title} - Vim Memo`;
-
-        document.getElementById('title-input').value = documentTitle;
-        document.title = documentTitle;
+        document.getElementById('title-input').value = title;
+        document.title =  `${title} - Vim Memo`;
     }
 
     function save() {
